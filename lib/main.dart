@@ -5,6 +5,7 @@ import 'src/app.dart';
 import 'src/config/router/app_router.dart';
 import 'src/core/di/service_locator.dart';
 import 'src/core/sync/sync_manager.dart';
+import 'src/features/clients/data/models/client_model.dart';
 import 'src/features/invoice/data/models/invoice_model.dart';
 
 Future<void> main() async {
@@ -12,6 +13,7 @@ Future<void> main() async {
 
   await Hive.initFlutter();
   Hive.registerAdapter(InvoiceModelAdapter());
+  Hive.registerAdapter(ClientModelAdapter());
 
   await initServiceLocator();
 

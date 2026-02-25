@@ -18,9 +18,7 @@ class AppTheme {
         bodyColor: AppColors.textPrimary,
         displayColor: AppColors.textPrimary,
       ),
-      inputDecorationTheme: const InputDecorationTheme(
-        border: OutlineInputBorder(),
-      ),
+      inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
       cardTheme: const CardThemeData(elevation: 0, margin: EdgeInsets.zero),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/theme/app_colors.dart';
+import '../../features/invoice/presentation/pages/create_invoice_page.dart';
 
 /// Main scaffold with persistent bottom navigation.
 /// Wraps the StatefulNavigationShell from go_router.
@@ -16,9 +17,7 @@ class MainScaffold extends StatelessWidget {
       body: navigationShell,
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () {
-          // TODO: Navigate to create invoice flow
-        },
+        onPressed: () => context.push(CreateInvoicePage.routePath),
         child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: BottomNavigationBar(

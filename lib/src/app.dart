@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'config/theme/app_theme.dart';
 import 'core/di/service_locator.dart';
+import 'features/clients/domain/repositories/client_repository.dart';
+import 'features/clients/presentation/cubit/client_cubit.dart';
 import 'features/invoice/domain/usecases/delete_invoice.dart';
 import 'features/invoice/domain/usecases/get_invoices.dart';
 import 'features/invoice/domain/usecases/save_invoice.dart';
@@ -25,6 +27,7 @@ class BillzoApp extends StatelessWidget {
             deleteInvoice: sl<DeleteInvoice>(),
           ),
         ),
+        BlocProvider<ClientCubit>(create: (_) => ClientCubit(sl<ClientRepository>())),
       ],
       child: MaterialApp.router(
         title: 'Billzo',
