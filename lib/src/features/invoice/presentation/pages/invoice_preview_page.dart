@@ -2,16 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/theme/app_colors.dart';
+import '../../../../core/di/service_locator.dart';
+import '../../../../core/services/pdf_service.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/line_item.dart';
 
-class InvoicePreviewPage extends StatelessWidget {
+class InvoicePreviewPage extends StatefulWidget {
   static const String routePath = '/invoices/preview/:id';
   static const String routeName = 'invoice_preview';
 
   final Invoice invoice;
 
   const InvoicePreviewPage({super.key, required this.invoice});
+
+  @override
+  State<InvoicePreviewPage> createState() => _InvoicePreviewPageState();
+}
+
+class _InvoicePreviewPageState extends State<InvoicePreviewPage> {
+  final PdfService _pdfService = sl<PdfService>();
+  bool _isDownloading = false;
+
+  Invoice get invoice => widget.invoice;
+
+  Future<void> _downloadPdf() async {
+    if (_isDownloading) return;
+
+    setState(() => _isDownloading = true);
+
+    try {
+      final filePath = await _pdfService.generateAndSaveInvoicePdf(invoice);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('PDF saved to: $filePath'),
+          backgroundColor: AppColors.success,
+          action: SnackBarAction(
+            label: 'Open',
+            textColor: Colors.white,
+            onPressed: () => _pdfService.openPdf(filePath),
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isDownloading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -553,16 +603,22 @@ class InvoicePreviewPage extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () {
-                // TODO: Download PDF
-              },
-              icon: Icon(
-                Icons.picture_as_pdf_outlined,
-                size: 20,
-                color: AppColors.textPrimary,
-              ),
+              onPressed: _isDownloading ? null : _downloadPdf,
+              icon: _isDownloading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: 20,
+                      color: AppColors.textPrimary,
+                    ),
               label: Text(
-                'Download PDF',
+                _isDownloading ? 'Generating PDF...' : 'Download PDF',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

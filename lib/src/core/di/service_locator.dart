@@ -13,6 +13,7 @@ import '../../features/invoice/domain/usecases/delete_invoice.dart';
 import '../../features/invoice/domain/usecases/get_invoices.dart';
 import '../../features/invoice/domain/usecases/save_invoice.dart';
 import '../network/connectivity_service.dart';
+import '../services/pdf_service.dart';
 import '../sync/supabase_sync_service.dart';
 import '../sync/sync_manager.dart';
 import '../sync/sync_service.dart';
@@ -28,6 +29,7 @@ Future<void> initServiceLocator() async {
 
   // Core services
   sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
+  sl.registerLazySingleton<PdfService>(() => PdfService());
 
   // Sync services
   sl.registerLazySingleton<SyncService>(() => SupabaseSyncService(syncMetaBox));
