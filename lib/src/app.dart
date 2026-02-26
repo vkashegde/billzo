@@ -34,6 +34,14 @@ class BillzoApp extends StatelessWidget {
         theme: AppTheme.light,
         routerConfig: _router,
         debugShowCheckedModeBanner: false,
+        builder: (context, child) {
+          return Container(
+            color: Colors.grey.shade200,
+            child: Center(
+              child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 400), child: child),
+            ),
+          );
+        },
       ),
     );
   }
