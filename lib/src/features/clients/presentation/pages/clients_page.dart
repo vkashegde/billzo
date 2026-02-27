@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../../config/theme/app_colors.dart';
 import '../../domain/entities/client.dart';
 import '../cubit/client_cubit.dart';
 import '../cubit/client_state.dart';
+import '../widgets/create_client_sheet.dart';
 
 class ClientsPage extends StatefulWidget {
   static const String routePath = '/clients';
@@ -38,21 +38,21 @@ class _ClientsPageState extends State<ClientsPage> {
 
     final query = _searchQuery.toLowerCase();
     return clients.where((c) {
-      return c.name.toLowerCase().contains(query) ||
-          c.email.toLowerCase().contains(query);
+      return c.name.toLowerCase().contains(query) || c.email.toLowerCase().contains(query);
     }).toList();
   }
 
   void _showCreateClientSheet() {
+    final clientCubit = context.read<ClientCubit>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => _CreateClientSheet(
+      builder: (_) => CreateClientSheet(
         onSave: (client) {
-          context.read<ClientCubit>().addClient(client);
+          clientCubit.addClient(client);
         },
       ),
     );
@@ -71,11 +71,6 @@ class _ClientsPageState extends State<ClientsPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateClientSheet,
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.person_add, color: Colors.white),
-      ),
     );
   }
 
@@ -92,17 +87,10 @@ class _ClientsPageState extends State<ClientsPage> {
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
-              Icons.person_outline_rounded,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
-          const Text(
-            'Clients',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-          ),
+          const Text('Clients', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
           const Spacer(),
           Container(
             height: 40,
@@ -118,11 +106,7 @@ class _ClientsPageState extends State<ClientsPage> {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.filter_list_rounded,
-              color: AppColors.textPrimary,
-              size: 22,
-            ),
+            child: const Icon(Icons.filter_list_rounded, color: AppColors.textPrimary, size: 22),
           ),
         ],
       ),
@@ -152,10 +136,7 @@ class _ClientsPageState extends State<ClientsPage> {
             hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 15),
             prefixIcon: Icon(Icons.search, color: AppColors.textSecondary),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ),
@@ -187,10 +168,7 @@ class _ClientsPageState extends State<ClientsPage> {
                   const SizedBox(height: 12),
                   Text(
                     'No clients found',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -232,10 +210,7 @@ class _ClientsPageState extends State<ClientsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Tap + to add your first client',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
+          Text('Tap + to add your first client', style: TextStyle(color: AppColors.textSecondary)),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: _showCreateClientSheet,
@@ -244,268 +219,11 @@ class _ClientsPageState extends State<ClientsPage> {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-// ============================================================================
-// Create Client Bottom Sheet
-// ============================================================================
-
-class _CreateClientSheet extends StatefulWidget {
-  final void Function(Client) onSave;
-
-  const _CreateClientSheet({required this.onSave});
-
-  @override
-  State<_CreateClientSheet> createState() => _CreateClientSheetState();
-}
-
-class _CreateClientSheetState extends State<_CreateClientSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _locationController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _locationController.dispose();
-    super.dispose();
-  }
-
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
-
-    final client = Client(
-      id: const Uuid().v4(),
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim().isEmpty
-          ? null
-          : _phoneController.text.trim(),
-      location: _locationController.text.trim().isEmpty
-          ? null
-          : _locationController.text.trim(),
-      updatedAt: DateTime.now(),
-    );
-
-    widget.onSave(client);
-    Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    height: 44,
-                    width: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.person_add,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'New Client',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          'Add a new client to your list',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Name field
-              _buildLabel('Client / Company Name', isRequired: true),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: _inputDecoration(
-                  hintText: 'e.g., Acme Corporation',
-                  prefixIcon: Icons.business_rounded,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Email field
-              _buildLabel('Email Address', isRequired: true),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: _inputDecoration(
-                  hintText: 'e.g., contact@acme.com',
-                  prefixIcon: Icons.email_outlined,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter an email';
-                  }
-                  if (!RegExp(
-                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                  ).hasMatch(value)) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Phone field
-              _buildLabel('Phone Number'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: _inputDecoration(
-                  hintText: 'e.g., +1 (555) 123-4567',
-                  prefixIcon: Icons.phone_outlined,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Location field
-              _buildLabel('Location'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _locationController,
-                textCapitalization: TextCapitalization.words,
-                decoration: _inputDecoration(
-                  hintText: 'e.g., New York, NY',
-                  prefixIcon: Icons.location_on_outlined,
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Save button
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _save,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: const Text(
-                    'Save Client',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text, {bool isRequired = false}) {
-    return Row(
-      children: [
-        Text(
-          text,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
-        if (isRequired)
-          const Text(
-            ' *',
-            style: TextStyle(
-              color: AppColors.danger,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-      ],
-    );
-  }
-
-  InputDecoration _inputDecoration({
-    required String hintText,
-    required IconData prefixIcon,
-  }) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
-      prefixIcon: Icon(prefixIcon, color: AppColors.textSecondary, size: 22),
-      filled: true,
-      fillColor: Colors.grey.shade50,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade200),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade200),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.danger),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 }
@@ -550,25 +268,16 @@ class _ClientCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         client.name,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                       ),
                     ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: AppColors.textSecondary.withOpacity(0.5),
-                    ),
+                    Icon(Icons.chevron_right, color: AppColors.textSecondary.withOpacity(0.5)),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
                   client.location ?? client.email,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 10),
                 // Stats row
@@ -603,10 +312,7 @@ class _ClientCard extends StatelessWidget {
         width: 56,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          image: DecorationImage(
-            image: NetworkImage(client.avatarUrl!),
-            fit: BoxFit.cover,
-          ),
+          image: DecorationImage(image: NetworkImage(client.avatarUrl!), fit: BoxFit.cover),
         ),
       );
     }
@@ -625,18 +331,11 @@ class _ClientCard extends StatelessWidget {
     return Container(
       height: 56,
       width: 56,
-      decoration: BoxDecoration(
-        color: colors[colorIndex],
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: BoxDecoration(color: colors[colorIndex], borderRadius: BorderRadius.circular(14)),
       child: Center(
         child: Text(
           client.initials,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
     );

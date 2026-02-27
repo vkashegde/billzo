@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/theme/app_colors.dart';
+import '../../features/clients/presentation/cubit/client_cubit.dart';
+import '../../features/clients/presentation/widgets/create_client_sheet.dart';
 import '../../features/invoice/presentation/pages/create_invoice_page.dart';
 
 /// Main scaffold with persistent bottom navigation.
@@ -11,14 +14,38 @@ class MainScaffold extends StatelessWidget {
 
   const MainScaffold({super.key, required this.navigationShell});
 
+  void _showCreateClientSheet(BuildContext context) {
+    final clientCubit = context.read<ClientCubit>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => CreateClientSheet(
+        onSave: (client) {
+          clientCubit.addClient(client);
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isClientsTab = navigationShell.currentIndex == 2;
+
     return Scaffold(
       body: navigationShell,
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () => context.push(CreateInvoicePage.routePath),
-        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          if (isClientsTab) {
+            _showCreateClientSheet(context);
+          } else {
+            context.push(CreateInvoicePage.routePath);
+          }
+        },
+        child: Icon(isClientsTab ? Icons.person_add : Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -27,31 +54,16 @@ class MainScaffold extends StatelessWidget {
         unselectedItemColor: AppColors.textSecondary,
         onTap: (index) => _onTap(index),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long_rounded),
-            label: 'Invoices',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group_rounded),
-            label: 'Clients',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Invoices'),
+          BottomNavigationBarItem(icon: Icon(Icons.group_rounded), label: 'Clients'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
       ),
     );
   }
 
   void _onTap(int index) {
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
-    );
+    navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
   }
 }
