@@ -1,0 +1,6 @@
+{
+  "buildCommand": "curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.24.0-stable.tar.xz | tar -xJ && flutter/bin/flutter config --no-analytics && flutter/bin/flutter pub get && flutter/bin/flutter build web --release",
+  "outputDirectory": "build/web",
+  "framework": null,
+  "installCommand": "echo 'No install needed'"
+}
